@@ -3522,6 +3522,54 @@
       .hub-grid {
         margin-top: 6px;
       }
+      .run-setup {
+        width: 100%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .run-setup .run-title {
+        font-size: 0.72rem;
+        font-weight: 900;
+        color: #f2f7ff;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+      }
+      .run-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .run-chip {
+        flex: 1 1 0;
+        min-width: 72px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+        border-radius: 999px;
+        padding: 8px 10px;
+        font-size: 0.66rem;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .run-chip.active {
+        border-color: rgba(241, 196, 15, 0.55);
+        background: rgba(241, 196, 15, 0.16);
+      }
+      .run-chip.small {
+        flex: 0 0 auto;
+        min-width: 36px;
+        padding-inline: 12px;
+      }
+      .run-hint {
+        font-size: 0.62rem;
+        line-height: 1.3;
+        color: rgba(230, 238, 248, 0.76);
+      }
       .starter-panel,
       .companion-tray {
         width: 100%;
@@ -4274,6 +4322,29 @@
        </div>
       </div>
      </button>
+    </div>
+    <div class="run-setup">
+     <div class="run-title">Modo de run</div>
+     <div class="run-row">
+      <button class="run-chip active" id="runModeNormal" onclick="setRunMode('normal')">Normal</button>
+      <button class="run-chip" id="runModeDaily" onclick="setRunMode('daily')">Diario</button>
+      <button class="run-chip" id="runModeAsc" onclick="setRunMode('ascension')">Ascensión</button>
+     </div>
+     <div class="run-row" style="align-items:center;justify-content:space-between;">
+      <button class="run-chip small" onclick="changeAscension(-1)">−</button>
+      <div class="run-hint" id="ascensionLabel">Ascensión 0 · dificultad base</div>
+      <button class="run-chip small" onclick="changeAscension(1)">+</button>
+     </div>
+     <div class="run-row">
+      <button class="run-chip" id="themeChipRandom" onclick="setRunThemeChoice('random')">Tema aleatorio</button>
+      <button class="run-chip" id="themeChipGreed" onclick="setRunThemeChoice('greed')">Codicia</button>
+      <button class="run-chip" id="themeChipRecovery" onclick="setRunThemeChoice('recovery')">Recuperación</button>
+     </div>
+     <div class="run-row">
+      <button class="run-chip" id="themeChipSiege" onclick="setRunThemeChoice('siege')">Asedio</button>
+      <button class="run-chip" id="themeChipChaos" onclick="setRunThemeChoice('chaos')">Caos</button>
+     </div>
+     <div class="run-hint" id="runHint">Elige un estilo de torre. Diario fija la semilla del día y Ascensión sube riesgo y botín.</div>
     </div>
     <div class="starter-panel hidden" id="starterPanel">
      <div class="shop-warning">
@@ -6360,6 +6431,7 @@
       function loadMeta() {
         try {
           const raw =
+            localStorage.getItem("poketower_v12_meta") ||
             localStorage.getItem("poketower_v11_meta") ||
             localStorage.getItem("poketower_v10_meta") ||
             localStorage.getItem("poketower_v9_meta") ||
@@ -6401,7 +6473,7 @@
             starterUnlocks: [...META.unlockedStarters],
             shinySpecies: [...new Set(META.shinySpecies || [])],
           });
-          localStorage.setItem("poketower_v11_meta", payload);
+          localStorage.setItem("poketower_v12_meta", payload);
           localStorage.setItem("poketower_v10_meta", payload);
           localStorage.setItem("poketower_v9_meta", payload);
         } catch (e) {}
@@ -6853,12 +6925,14 @@
       function openPlayHub() {
         $("rootMenu").classList.add("hidden");
         $("playHub").classList.remove("hidden");
+        updateRunControls();
         if (!START_SHOP.stock) START_SHOP.stock = makeStartShopStock();
         void Main.loadStarterGrid();
         void renderStartShop();
         void renderLobbyCompanions();
       }
       function backToRootMenu() {
+        stopRunRandom();
         $("playHub").classList.add("hidden");
         $("rootMenu").classList.remove("hidden");
         closeStartShop();
@@ -7044,6 +7118,115 @@
         START_SHOP.stock = null;
         updateStarBadges();
         return { items, mons, boosts };
+      }
+
+      const RUN_PREFS = {
+        mode: 'normal',
+        theme: 'random',
+        ascension: 0,
+        seed: 0,
+        currentThemeId: null,
+        isDaily: false,
+      };
+      const RANDOM_STATE = {
+        active: false,
+        seed: 0,
+        original: Math.random,
+      };
+      function hashString(str) {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < String(str).length; i++) {
+          h ^= String(str).charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+      }
+      function seededRandomFactory(seed) {
+        let t = seed >>> 0;
+        return function () {
+          t += 0x6d2b79f5;
+          let x = t;
+          x = Math.imul(x ^ (x >>> 15), x | 1);
+          x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+          return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function startRunRandom(seed) {
+        const s = (seed >>> 0) || 1;
+        RANDOM_STATE.active = true;
+        RANDOM_STATE.seed = s;
+        RANDOM_STATE.original = RANDOM_STATE.original || Math.random;
+        const rng = seededRandomFactory(s);
+        Math.random = rng;
+        return rng;
+      }
+      function stopRunRandom() {
+        if (!RANDOM_STATE.active) return;
+        Math.random = RANDOM_STATE.original || Math.random;
+        RANDOM_STATE.active = false;
+      }
+      function dailyRunSeed(id) {
+        const d = new Date();
+        const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return hashString(`poketower-daily:${local}:${id}`);
+      }
+      function updateRunControls() {
+        const modeMap = {
+          normal: 'runModeNormal',
+          daily: 'runModeDaily',
+          ascension: 'runModeAsc',
+        };
+        Object.values(modeMap).forEach((id) => {
+          const el = $(id);
+          if (el) el.classList.toggle('active', el.id === modeMap[RUN_PREFS.mode]);
+        });
+        const themeButtons = {
+          random: 'themeChipRandom',
+          greed: 'themeChipGreed',
+          recovery: 'themeChipRecovery',
+          siege: 'themeChipSiege',
+          chaos: 'themeChipChaos',
+        };
+        Object.entries(themeButtons).forEach(([key, id]) => {
+          const el = $(id);
+          if (el) el.classList.toggle('active', RUN_PREFS.theme === key);
+        });
+        const ascEl = $('ascensionLabel');
+        if (ascEl) {
+          const a = Number(RUN_PREFS.ascension || 0);
+          ascEl.textContent = a > 0 ? `Ascensión ${a} · más enemigos, más botín` : 'Ascensión 0 · dificultad base';
+        }
+        const hint = $('runHint');
+        if (hint) {
+          const themeText = RUN_PREFS.theme === 'random' ? 'Tema: al azar.' : `Tema fijo: ${RUN_PREFS.theme}.`;
+          const modeText = RUN_PREFS.mode === 'daily' ? 'Diario usa la misma semilla local del día.' : RUN_PREFS.mode === 'ascension' ? 'Ascensión sube el riesgo y mejora recompensas.' : 'Modo normal, libre.';
+          hint.textContent = `${themeText} ${modeText}`;
+        }
+      }
+      function setRunMode(mode) {
+        RUN_PREFS.mode = ['normal', 'daily', 'ascension'].includes(mode) ? mode : 'normal';
+        RUN_PREFS.isDaily = RUN_PREFS.mode === 'daily';
+        updateRunControls();
+      }
+      function changeAscension(delta) {
+        RUN_PREFS.ascension = clamp((RUN_PREFS.ascension || 0) + delta, 0, 20);
+        if (RUN_PREFS.ascension > 0 && RUN_PREFS.mode === 'normal') RUN_PREFS.mode = 'ascension';
+        if (RUN_PREFS.ascension === 0 && RUN_PREFS.mode === 'ascension' && !RUN_PREFS.isDaily) RUN_PREFS.mode = 'normal';
+        updateRunControls();
+      }
+      function setRunThemeChoice(theme) {
+        RUN_PREFS.theme = ['random', 'greed', 'recovery', 'siege', 'chaos'].includes(theme) ? theme : 'random';
+        updateRunControls();
+      }
+      function pickSelectedRunTheme(seed = null) {
+        if (RUN_PREFS.theme && RUN_PREFS.theme !== 'random') {
+          return RUN_THEMES.find((t) => t.id === RUN_PREFS.theme) || pickRunTheme();
+        }
+        if (seed != null) {
+          const rng = seededRandomFactory(Number(seed) || 1);
+          return RUN_THEMES[Math.floor(rng() * RUN_THEMES.length)] || RUN_THEMES[0];
+        }
+        return pickRunTheme();
       }
 
       // ============================================================
@@ -7245,6 +7428,118 @@
         }
         return items[items.length - 1];
       }
+      const RUN_THEMES = [
+        {
+          id: "greed",
+          name: "Codicia",
+          icon: "💰",
+          bias: { shop: 1.8, challenge: 1.45, mystery: 1.08, rest: 0.85, battle: 0.9, elite: 1.02, event: 0.95 },
+        },
+        {
+          id: "recovery",
+          name: "Recuperación",
+          icon: "🛌",
+          bias: { rest: 1.85, event: 1.15, shop: 0.9, battle: 0.92, elite: 0.96, mystery: 1.0, challenge: 0.82 },
+        },
+        {
+          id: "siege",
+          name: "Asedio",
+          icon: "⚔",
+          bias: { battle: 1.6, elite: 1.45, challenge: 1.12, rest: 0.82, shop: 0.9, event: 0.92, mystery: 0.95 },
+        },
+        {
+          id: "chaos",
+          name: "Caos",
+          icon: "🌀",
+          bias: { mystery: 1.95, event: 1.22, elite: 1.08, battle: 1.0, rest: 0.92, shop: 0.88, challenge: 1.04 },
+        },
+      ];
+
+      function pickRunTheme() {
+        return RUN_THEMES[rand(0, RUN_THEMES.length - 1)];
+      }
+
+      const RUN_BLESSING_POOL = [
+        "golden-tide",
+        "battle-surge",
+        "adaptive-armor",
+        "type-mastery",
+        "lightning-ref",
+        "iron-will",
+        "spirit-link",
+        "critical-mind",
+        "momentum",
+      ];
+
+      const RUN_THEME_MUTATORS = {
+        greed: { blessings: ["golden-tide", "spirit-link"], curses: [] },
+        recovery: { blessings: ["spirit-link", "adaptive-armor"], curses: [] },
+        siege: { blessings: ["battle-surge", "type-mastery"], curses: [] },
+        chaos: { blessings: ["critical-mind", "momentum"], curses: ["haunted", "brittle-armor"] },
+      };
+
+      const RUN_CURSE_POOL = ["brittle-armor", "glass-cannon", "haunted", "heavy-steps", "no-rest"];
+
+      function pickRunMutators(themeId, ascension = 0, seed = 1) {
+        const rng = seededRandomFactory((seed ^ hashString(`mut:${themeId}:${ascension}`)) >>> 0);
+        const theme = RUN_THEME_MUTATORS[themeId] || RUN_THEME_MUTATORS.greed;
+        const blessings = [];
+        const curses = [];
+        const pushUnique = (arr, id) => {
+          if (id && !arr.includes(id)) arr.push(id);
+        };
+
+        // Guaranteed theme flavor
+        (theme.blessings || []).forEach((id) => pushUnique(blessings, id));
+        if (themeId === "greed") pushUnique(blessings, "golden-tide");
+        if (themeId === "recovery") pushUnique(blessings, "spirit-link");
+        if (themeId === "siege") pushUnique(blessings, "battle-surge");
+        if (themeId === "chaos") pushUnique(blessings, "critical-mind");
+
+        // Extra depth as difficulty rises
+        const extraBlessings = ascension >= 2 ? 1 : 0;
+        const moreBlessings = ascension >= 6 ? 1 : 0;
+        for (let i = 0; i < extraBlessings + moreBlessings; i++) {
+          const pool = RUN_BLESSING_POOL.filter((id) => !blessings.includes(id));
+          if (!pool.length) break;
+          pushUnique(blessings, pool[Math.floor(rng() * pool.length)]);
+        }
+
+        // Keep chaos / high ascension spicy but not oppressive.
+        const curseChance =
+          themeId === "chaos" ? 0.75 : ascension >= 8 ? 0.45 : ascension >= 4 ? 0.25 : 0.08;
+        if (rng() < curseChance) {
+          const cursePool = RUN_CURSE_POOL.filter((id) => !curses.includes(id));
+          if (cursePool.length) pushUnique(curses, cursePool[Math.floor(rng() * cursePool.length)]);
+        }
+        if (themeId === "chaos" && ascension >= 4 && rng() < 0.35) {
+          const cursePool = RUN_CURSE_POOL.filter((id) => !curses.includes(id));
+          if (cursePool.length) pushUnique(curses, cursePool[Math.floor(rng() * cursePool.length)]);
+        }
+
+        const names = [
+          ...blessings
+            .map((id) => BLESSINGS.find((x) => x.id === id))
+            .filter(Boolean)
+            .map((b) => `✨ ${b.name}`),
+          ...curses
+            .map((id) => CURSES.find((x) => x.id === id))
+            .filter(Boolean)
+            .map((c) => `💀 ${c.name}`),
+        ];
+        return {
+          blessings,
+          curses,
+          label: names.length
+            ? `Mutadores de run: ${names.join(" · ")}`
+            : "Mutadores de run: base estable",
+        };
+      }
+
+      function routeBiasForTheme(type, themeId) {
+        const theme = RUN_THEMES.find((t) => t.id === themeId) || RUN_THEMES[0];
+        return (theme.bias && theme.bias[type]) || 1;
+      }
       function makeTowerNode(type, floor) {
         const lvl = getEnemyLevelForFloor(floor, type === "boss" || type === "master");
         const desc = {
@@ -7279,7 +7574,9 @@
       }
       function generateRouteNodes(floor) {
         if (floor % 5 === 0) return [makeTowerNode("boss", floor)];
-        const weights = [
+        const theme = GS.runTheme || "greed";
+        const count = floor >= 8 ? 4 : 3;
+        const baseWeights = [
           { type: "battle", weight: Math.max(4, 10 - floor * 0.35) },
           { type: "event", weight: 3.5 },
           { type: "rest", weight: 2.8 },
@@ -7294,16 +7591,33 @@
                 : 0,
           },
           { type: "challenge", weight: floor >= 3 ? 1.4 : 0.2 },
-        ];
+        ].map((node) => ({
+          ...node,
+          weight: node.weight * routeBiasForTheme(node.type, theme),
+        }));
         const chosen = [];
         const avoid = new Set();
-        while (chosen.length < 3) {
-          const pick = weightedPick(weights);
+        const guaranteed = [];
+        if (theme === "greed") guaranteed.push("shop");
+        if (theme === "recovery") guaranteed.push("rest");
+        if (theme === "siege") guaranteed.push(floor >= 4 ? "elite" : "battle");
+        if (theme === "chaos") guaranteed.push("mystery");
+        if (floor % 4 === 0) guaranteed.push("challenge");
+        if (floor >= 3 && floor % 2 === 1) guaranteed.push("event");
+        for (const type of guaranteed) {
+          if (chosen.length >= count || avoid.has(type)) continue;
+          avoid.add(type);
+          chosen.push(makeTowerNode(type, floor));
+        }
+        while (chosen.length < count) {
+          const pool = baseWeights.filter((pick) => !avoid.has(pick.type) && pick.weight > 0);
+          if (!pool.length) break;
+          const pick = weightedPick(pool);
           if (!pick || avoid.has(pick.type) || pick.weight <= 0) continue;
           avoid.add(pick.type);
           chosen.push(makeTowerNode(pick.type, floor));
         }
-        return chosen;
+        return chosen.slice(0, count);
       }
 
       // ============================================================
@@ -7980,14 +8294,15 @@
           ? GS.playerTeam.reduce((s, p) => s + (p.level || 1), 0) / GS.playerTeam.length
           : GS.p?.level || 6;
         const playerPower = Math.max(6, Math.round(GS.p?.level || partyAvg));
+        const asc = Math.max(0, Number(GS.ascension || 0));
 
         // Early floors are intentionally softer so the first battles teach the loop
         // without turning the opening into a wall.
         if (floor <= 4) {
           const earlyEnemyLevel = clamp(
-            playerPower - 3 + Math.floor((floor - 1) / 2),
+            playerPower - 3 + Math.floor((floor - 1) / 2) + Math.floor(asc * 0.3),
             2,
-            Math.max(2, playerPower - 1),
+            Math.max(2, playerPower - 1 + Math.floor(asc * 0.2)),
           );
           return {
             isBoss,
@@ -7997,17 +8312,17 @@
         }
 
         const floorRamp = floor <= 20 ? 4 + floor * 0.82 : 20.5 + (floor - 20) * 1.35;
-        const pressure = Math.max(playerPower + (isBoss ? 3 : 2), floorRamp + (isBoss ? 2 : 0));
+        const pressure = Math.max(playerPower + (isBoss ? 3 : 2), floorRamp + (isBoss ? 2 : 0)) + asc * 0.85;
         const enemyLevel = clamp(Math.round(pressure), 4, 100);
         const enemyCount = isBoss
-          ? Math.min(6, 2 + Math.floor(floor / 8))
+          ? Math.min(6, 2 + Math.floor(floor / 8) + Math.floor(asc / 6))
           : floor < 10
             ? 2
             : floor < 20
               ? 3
               : floor < 35
-                ? 4
-                : 5;
+                ? 4 + Math.floor(asc / 8)
+                : 5 + Math.floor(asc / 10);
 
         return { isBoss, enemyLevel, enemyCount };
       }
@@ -8025,9 +8340,10 @@
       }
 
       function getEnemyBattleScale(floor) {
-        if (floor < 30) return 1;
+        const asc = Math.max(0, Number(GS.ascension || 0));
+        if (floor < 30 && asc <= 0) return 1;
         // Piso 30+ → "segunda mitad": escala más agresiva y consistente
-        const extra = Math.min(1.4, 0.30 + (floor - 30) * 0.065);
+        const extra = Math.min(1.4, 0.30 + (floor - 30) * 0.065 + asc * 0.03);
         return 1 + extra;
       }
 
@@ -9996,6 +10312,7 @@
             if (crit) {
               SFX.crit();
               UI.floatTxt("¡CRÍTICO!", ds, "#f1c40f");
+              UI.screenShake(true);
             }
             UI.updateHUD();
 
@@ -10003,12 +10320,14 @@
               await sleep(250);
               UI.log("¡Es súper eficaz!");
               SFX.super();
+              UI.flashType(mv.type);
               UI.floatTxt("SÚPER", ds, "#ff4444");
               await sleep(700);
             } else if (eff > 1) {
               await sleep(250);
               UI.log("¡Es eficaz!");
               SFX.super();
+              UI.flashType(mv.type);
               await sleep(600);
             } else if (eff < 1 && eff > 0) {
               await sleep(250);
@@ -10292,6 +10611,10 @@
           GS.score += scoreGain;
           gainGold(shinyBonus);
           GS.streak++;
+          if (GS.streak >= 5) {
+            GS.score += 5;
+            UI.floatTxt("🔥 COMBO +5", "e", "#ffffff");
+          }
           $("scbdg").textContent = "⭐ " + GS.score;
           if (GS.streak >= 3) {
             UI.floatTxt(`🔥 RACHA ×${GS.streak}`, "e", "#f1c40f");
@@ -10587,7 +10910,7 @@
           const unlockedCount = META.unlockedStarters.length;
           if (META.bestFloor > 0)
             $("bestfloor").textContent =
-              `🏆 Récord: Piso ${META.bestFloor} · ⭐ ${META.bestScore} · 🎓 ${META.masterWins || 0} maestros · 🔓 ${unlockedCount}/${ALL_STARTERS.length} iniciales`;
+              `🏆 Récord: Piso ${META.bestFloor} · ⭐ ${META.bestScore} · 🎓 ${META.masterWins || 0} maestros · 🔓 ${unlockedCount}/${ALL_STARTERS.length} iniciales${META.bestFloor >= 20 ? ' · ⛰ desbloquea Ascensión' : ''}`;
           if ($("startmeta"))
             $("startmeta").textContent =
               `Progreso: ${unlockedCount}/${ALL_STARTERS.length} iniciales · ${META.masterWins || 0} maestros derrotados · ${META.seenSpecies.length || 0} vistos · ✨ ${(META.shinySpecies || []).length} shinies · ⭐ ${META.stars || 0} estrellas`;
@@ -10607,6 +10930,10 @@
               $("sov").style.display = "flex";
               return;
             }
+            const isDaily = RUN_PREFS.mode === 'daily';
+            const runSeed = isDaily ? dailyRunSeed(id) : (((Date.now() ^ id ^ (RUN_PREFS.ascension << 8)) >>> 0) || 1);
+            const runTheme = pickSelectedRunTheme(runSeed);
+            startRunRandom(runSeed);
             const poke = await buildPoke(base, 6);
             const starterShiny = applyShinyBoost(poke, 1 / 2048);
             if (starterShiny) UI.log(`✨ ¡${poke.name} salió shiny!`);
@@ -10619,7 +10946,7 @@
             Object.assign(GS, {
               floor: 1,
               score: 0,
-              gold: 0,
+              gold: runTheme.id === "greed" ? 20 : 0,
               streak: 0,
               bag: [],
               modifiers: [],
@@ -10630,6 +10957,13 @@
               goldGainMult: 1,
               floorGoldBonus: 0,
               startBoosts: [],
+              runTheme: runTheme.id,
+              runThemeName: runTheme.name,
+              runThemeIcon: runTheme.icon,
+              runMode: RUN_PREFS.mode,
+              isDaily,
+              ascension: Math.max(0, Number(RUN_PREFS.ascension || 0)),
+              runSeed,
               playerTeam: [poke, ...extraMons],
               playerIdx: 0,
               enemyTeam: [],
@@ -10656,7 +10990,24 @@
               _curses_brittle: false,
               _curses_haunted: false,
               _curses_norest: false,
+              runMutators: { blessings: [], curses: [], label: "" },
+              runFlavor: "",
+              runCombo: 0,
             });
+            const runMutators = pickRunMutators(runTheme.id, Math.max(0, Number(RUN_PREFS.ascension || 0)), runSeed);
+            GS.runMutators = runMutators;
+            GS.runFlavor = runMutators.label;
+            for (const id of runMutators.blessings) {
+              if (!GS.modifiers.includes(id)) GS.modifiers.push(id);
+            }
+            for (const id of runMutators.curses) {
+              if (!GS.curses.includes(id)) {
+                GS.curses.push(id);
+                const c = CURSES.find((x) => x.id === id);
+                if (c && typeof c.apply === "function") c.apply(GS);
+              }
+            }
+            if (runMutators.label) UI.log(`🎲 ${runMutators.label}`);
             for (const itemId of queued.items) {
               this.addBagItem(itemId);
             }
@@ -10697,10 +11048,12 @@
             (id) => ($(id).style.display = "none"),
           );
           const isBoss = GS.floor % 5 === 0;
-          $("maptitle").textContent = isBoss ? "⚠ ¡COMBATE DE JEFE!" : "🧭 ELIGE RUTA";
+          $("maptitle").textContent = isBoss ? "⚠ ¡COMBATE DE JEFE!" : `🧭 ELIGE RUTA${GS.runTheme ? ` · ${GS.runThemeName.toUpperCase()}` : ""}`;
+          const theme = RUN_THEMES.find((t) => t.id === GS.runTheme);
+          const mutatorSummary = GS.runMutators?.label ? ` ${GS.runMutators.label}.` : "";
           $("mapmsg").textContent = isBoss
-            ? `Piso ${GS.floor}: Jefe esperando. No hay escapatoria.`
-            : `Piso ${GS.floor}: Elige cómo avanzar.`;
+            ? `Piso ${GS.floor}: Jefe esperando. No hay escapatoria.${mutatorSummary}`
+            : `Piso ${GS.floor}: Elige cómo avanzar.${theme ? ` Modo ${theme.icon} ${theme.name}.` : ""}${mutatorSummary}`;
           $("mapopts").innerHTML = nodes
             .map(
               (n, i) => `
@@ -11068,7 +11421,7 @@
           $("evtitle").innerHTML = "🛒 TIENDA";
           $("evmsg").innerText = `Tu oro: 💰 ${GS.gold}. Compra una reliquia o avanza.`;
           const avail = RELICS.filter((r) => !GS.relics.some((e) => e.id === r.id));
-          const offers = pickUniqueRandom(avail, 3);
+          const offers = pickUniqueRandom(avail, GS.floor >= 8 || GS.runTheme === "greed" ? 4 : 3);
           const itemCost = Math.max(30, 40 + GS.floor * 4);
           const healCost = Math.max(15, 20 + GS.floor * 2);
           const ppCost = Math.max(10, 14 + GS.floor);
@@ -11648,9 +12001,10 @@
           const mult = Battle.hasRelic("lucky-egg") ? 0.45 : 0.3;
           GS.p.hp = Math.min(GS.p.maxHp, GS.p.hp + Math.floor(GS.p.maxHp * mult));
           const _goldMult = Battle.hasModifier("golden-tide") ? 2 : 1;
+          const ascBonus = 1 + Math.min(0.65, (GS.ascension || 0) * 0.045);
           const reward = Math.floor(
-            (Math.max(20, Number(GS.nodeReward || 0)) + (GS.streak >= 3 ? GS.streak * 3 : 0)) *
-              _goldMult,
+            ((Math.max(20, Number(GS.nodeReward || 0)) + (GS.streak >= 3 ? GS.streak * 3 : 0)) *
+              _goldMult) * ascBonus,
           );
           gainGold(reward);
           GS.score += GS.floor * 5 + (GS.streak >= 3 ? GS.streak * 5 : 0);
@@ -11670,6 +12024,7 @@
             GS.lastUnlockText = "";
           }
           UI.updateHUD();
+          if (GS.runFlavor) UI.log(`🎯 ${GS.runFlavor}`);
           if (GS.floor % 5 === 0) {
             await this.showModifierChoice();
           } else {
@@ -12029,7 +12384,7 @@
           );
           this._challengeHpCost = cost;
           $("evmsg").innerText =
-            `Una sala llena de trofeos y poder. Pero tiene un precio: perderás aproximadamente ${cost} HP totales.`;
+            `Una sala llena de trofeos y poder. Pero tiene un precio: perderás aproximadamente ${cost} HP totales.${GS.runTheme === "greed" ? " La ruta de Codicia parece especialmente generosa hoy." : ""}`;
           $("evopts").innerHTML = `<div class="evcard ropt" onclick="Main._challengeAccept()">
         <div class="ri2">💎</div>
         <div><strong>Sacrificar 25% HP del equipo</strong><span>Garantiza una reliquia rara a elegir entre 3 opciones.</span></div>
@@ -12055,7 +12410,7 @@
           // Force pick a relic
           const avail = RELICS.filter((r) => !GS.relics.some((e) => e.id === r.id));
           if (avail.length) {
-            const offers = pickUniqueRandom(avail, 3);
+            const offers = pickUniqueRandom(avail, GS.floor >= 10 ? 4 : 3);
             $("ppgrid").innerHTML = offers
               .map(
                 (r) => `<div class="ppcard" onclick="Main._challengeRelic('${r.id}')">
@@ -12108,6 +12463,7 @@
         gameOver() {
           SFX.faint();
           const starGain = awardRunStars(false);
+          stopRunRandom();
           resetStartShop();
           META.bestFloor = Math.max(META.bestFloor, GS.floor);
           META.bestScore = Math.max(META.bestScore, GS.score);
@@ -12382,6 +12738,7 @@ RESPONDE SOLO con la frase. Sin comillas. Sin explicación.`;
       (function init() {
         Object.assign(META, loadMeta());
         loadPokeCache();
+        updateRunControls();
         // Fans
         const fb = $("fans");
         for (let i = 0; i < 200; i++) {
