@@ -3084,6 +3084,400 @@
         }
       }
 
+      /* ================================================================
+         VISUAL NODE MAP
+      ================================================================ */
+      .map-shell {
+        width: min(92vw, 400px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .map-header {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .map-floor-badge {
+        background: linear-gradient(135deg, #f1c40f, #e67e22);
+        color: #000;
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 3px 14px;
+        border-radius: 999px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .map-title {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #f2f7ff;
+        letter-spacing: 0.5px;
+      }
+      .map-subtitle {
+        color: rgba(200,215,235,0.7);
+        font-size: 0.68rem;
+        text-align: center;
+        line-height: 1.3;
+        margin: 0;
+      }
+      /* Team HP mini-strip */
+      .map-teamstrip {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .map-team-pip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+      .map-pip-img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.12);
+        object-fit: contain;
+        background: rgba(255,255,255,0.06);
+        image-rendering: pixelated;
+      }
+      .map-pip-img.fainted { filter: grayscale(1); opacity: 0.35; }
+      .map-pip-bar {
+        width: 28px;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.1);
+        overflow: hidden;
+      }
+      .map-pip-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.4s;
+      }
+      /* Path SVG connector */
+      .map-path-wrap {
+        width: 100%;
+        height: 28px;
+        position: relative;
+      }
+      .map-path-svg {
+        width: 100%;
+        height: 100%;
+      }
+      /* Node cards grid */
+      .map-nodes {
+        width: 100%;
+        display: grid;
+        gap: 10px;
+      }
+      .map-nodes.count-1 { grid-template-columns: 1fr; }
+      .map-nodes.count-2 { grid-template-columns: 1fr 1fr; }
+      .map-nodes.count-3 { grid-template-columns: 1fr 1fr 1fr; }
+      .map-nodes.count-4 { grid-template-columns: 1fr 1fr; }
+      .map-node-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px 12px;
+        border-radius: 18px;
+        border: 1.5px solid rgba(255,255,255,0.13);
+        background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));
+        box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+        overflow: hidden;
+        text-align: center;
+      }
+      .map-node-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        border-radius: 18px 18px 0 0;
+        opacity: 0.8;
+      }
+      .map-node-card.type-battle::before { background: linear-gradient(90deg,#e74c3c,#c0392b); }
+      .map-node-card.type-elite::before  { background: linear-gradient(90deg,#9b59b6,#6c3483); }
+      .map-node-card.type-boss::before   { background: linear-gradient(90deg,#e74c3c,#f39c12); }
+      .map-node-card.type-event::before  { background: linear-gradient(90deg,#3498db,#1a6fdb); }
+      .map-node-card.type-rest::before   { background: linear-gradient(90deg,#27ae60,#1a8a47); }
+      .map-node-card.type-shop::before   { background: linear-gradient(90deg,#f1c40f,#d4a017); }
+      .map-node-card.type-mystery::before{ background: linear-gradient(90deg,#8e44ad,#3498db); }
+      .map-node-card.type-master::before { background: linear-gradient(90deg,#f1c40f,#e74c3c); }
+      .map-node-card.type-challenge::before{ background: linear-gradient(90deg,#1abc9c,#27ae60); }
+      /* Boss node: full-width, special glow */
+      .map-node-card.type-boss {
+        grid-column: 1 / -1;
+        border-color: rgba(231,76,60,0.45);
+        background: linear-gradient(160deg, rgba(180,30,30,0.22), rgba(80,10,10,0.28));
+        box-shadow: 0 0 30px rgba(231,76,60,0.18), 0 12px 30px rgba(0,0,0,0.4);
+        animation: bossNodePulse 2s ease-in-out infinite;
+      }
+      @keyframes bossNodePulse {
+        0%,100% { box-shadow: 0 0 20px rgba(231,76,60,0.15), 0 12px 30px rgba(0,0,0,0.4); }
+        50%      { box-shadow: 0 0 40px rgba(231,76,60,0.32), 0 12px 30px rgba(0,0,0,0.4); }
+      }
+      .map-node-card:active {
+        transform: scale(0.97) translateY(1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      }
+      .map-node-icon {
+        font-size: 1.6rem;
+        line-height: 1;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+      }
+      .map-node-card.type-boss .map-node-icon { font-size: 2rem; }
+      .map-node-title {
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #f2f7ff;
+        line-height: 1.1;
+      }
+      .map-node-card.type-boss .map-node-title { font-size: 0.82rem; letter-spacing: 1px; }
+      .map-node-desc {
+        font-size: 0.52rem;
+        color: rgba(200,215,235,0.65);
+        line-height: 1.25;
+      }
+      .map-node-tag {
+        font-size: 0.46rem;
+        font-weight: 900;
+        padding: 2px 7px;
+        border-radius: 999px;
+        color: #fff;
+        letter-spacing: 0.4px;
+        margin-top: 2px;
+      }
+      .type-battle .map-node-tag  { background: rgba(231,76,60,0.35); }
+      .type-elite  .map-node-tag  { background: rgba(155,89,182,0.45); }
+      .type-boss   .map-node-tag  { background: rgba(231,76,60,0.5); color: #ffdddd; }
+      .type-event  .map-node-tag  { background: rgba(52,152,219,0.35); }
+      .type-rest   .map-node-tag  { background: rgba(39,174,96,0.35); }
+      .type-shop   .map-node-tag  { background: rgba(241,196,15,0.3); color: #ffe066; }
+      .type-mystery .map-node-tag { background: rgba(142,68,173,0.4); }
+      .type-master .map-node-tag  { background: rgba(241,196,15,0.4); color: #ffe066; }
+      .type-challenge .map-node-tag { background: rgba(26,188,156,0.35); }
+      /* Mutator strip */
+      .map-mutators {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+      }
+      .map-mut-chip {
+        font-size: 0.5rem;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.3px;
+      }
+      .map-mut-chip.bless { background: rgba(39,174,96,0.22); border: 1px solid rgba(39,174,96,0.4); color: #7fffb0; }
+      .map-mut-chip.curse { background: rgba(231,76,60,0.18); border: 1px solid rgba(231,76,60,0.38); color: #ffaaaa; }
+      .map-mut-chip.theme { background: rgba(241,196,15,0.14); border: 1px solid rgba(241,196,15,0.3); color: #ffdb73; }
+
+      /* ================================================================
+         GAME OVER — RUN SUMMARY
+      ================================================================ */
+      #goov {
+        background: radial-gradient(120% 120% at 50% 0%, rgba(60,8,8,0.96) 0%, rgba(5,5,18,0.99) 60%, rgba(2,2,8,1) 100%);
+        overflow-y: auto;
+      }
+      .go-shell {
+        width: min(92vw, 390px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0 12px;
+      }
+      .go-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        text-align: center;
+      }
+      .go-skull {
+        font-size: 2.6rem;
+        animation: goSkullPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        filter: drop-shadow(0 0 18px rgba(231,76,60,0.55));
+      }
+      @keyframes goSkullPop {
+        from { transform: scale(0.4); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+      .go-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #e74c3c;
+        text-shadow: 0 0 22px rgba(231,76,60,0.45);
+      }
+      .go-subtitle {
+        font-size: 0.82rem;
+        color: rgba(220,230,245,0.85);
+        margin: 0;
+      }
+      /* Stats grid */
+      .go-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+      }
+      .go-stat-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      }
+      .go-stat-label {
+        font-size: 0.52rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: rgba(180,200,225,0.65);
+      }
+      .go-stat-value {
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #f2f7ff;
+        letter-spacing: 0.3px;
+      }
+      .go-stat-card.highlight {
+        border-color: rgba(241,196,15,0.35);
+        background: linear-gradient(160deg, rgba(241,196,15,0.12), rgba(241,196,15,0.04));
+      }
+      .go-stat-card.highlight .go-stat-value { color: #ffdb73; }
+      /* Section label */
+      .go-section-label {
+        width: 100%;
+        font-size: 0.58rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(180,200,225,0.55);
+        padding-bottom: 3px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+      /* Relics strip */
+      .go-relics {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: flex-start;
+      }
+      .go-relic-chip {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 10px;
+        padding: 5px 9px;
+        font-size: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #e0eaf8;
+      }
+      /* Team summary */
+      .go-team {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .go-mon-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+        border: 1px solid rgba(255,255,255,0.11);
+        border-radius: 14px;
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        text-align: center;
+      }
+      .go-mon-card.survived { border-color: rgba(46,204,113,0.3); }
+      .go-mon-card.fainted  { opacity: 0.45; filter: grayscale(0.7); }
+      .go-mon-img {
+        width: 48px; height: 48px;
+        image-rendering: auto;
+        filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4));
+      }
+      .go-mon-name {
+        font-size: 0.56rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #f2f7ff;
+        line-height: 1;
+      }
+      .go-mon-hp {
+        width: 100%;
+        height: 3px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .go-mon-hp-fill {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .go-mon-status {
+        font-size: 0.46rem;
+        color: rgba(180,200,225,0.6);
+      }
+      /* Best run */
+      .go-best {
+        width: 100%;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 9px 12px;
+        font-size: 0.62rem;
+        color: rgba(180,200,225,0.7);
+        text-align: center;
+        line-height: 1.4;
+      }
+      .go-best strong { color: #f2f7ff; }
+      /* Replay button */
+      .go-replay-btn {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border: none;
+        color: #fff;
+        padding: 14px 36px;
+        border-radius: 14px;
+        font-weight: 900;
+        font-size: 1rem;
+        cursor: pointer;
+        letter-spacing: 0.4px;
+        box-shadow: 0 10px 28px rgba(231,76,60,0.35);
+        transition: transform 0.12s, box-shadow 0.12s;
+        width: 100%;
+        margin-top: 2px;
+      }
+      .go-replay-btn:active {
+        transform: scale(0.98) translateY(1px);
+        box-shadow: 0 5px 14px rgba(231,76,60,0.25);
+      }
+
       /* === PRELOAD SCREEN === */
       #preloadov {
         background: radial-gradient(
@@ -4249,12 +4643,22 @@
   </div>
   <!-- MAP -->
   <div class="ov" id="mapov" style="display: none">
-   <div id="maptitle" style="font-size: 1.05rem; font-weight: 900; color: #f1c40f; margin-bottom: 4px">
-    🧭 ELIGE RUTA
-   </div>
-   <p id="mapmsg" style="color: #aaa; font-size: 0.74rem; margin-bottom: 10px">
-   </p>
-   <div id="mapopts" style="width: 100%; overflow-y: auto; max-height: 72vh">
+   <div class="map-shell">
+    <div class="map-header">
+     <div class="map-floor-badge" id="mapFloorBadge">PISO 1</div>
+     <div id="maptitle" class="map-title">🧭 ELIGE RUTA</div>
+     <p id="mapmsg" class="map-subtitle"></p>
+    </div>
+    <!-- Team HP bar strip -->
+    <div class="map-teamstrip" id="mapTeamStrip"></div>
+    <!-- Path visual -->
+    <div class="map-path-wrap">
+     <svg class="map-path-svg" id="mapPathSvg" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+    </div>
+    <!-- Node cards -->
+    <div id="mapopts" class="map-nodes"></div>
+    <!-- Run modifiers at bottom -->
+    <div class="map-mutators" id="mapMutators"></div>
    </div>
   </div>
   <!-- START -->
@@ -4658,31 +5062,24 @@
   </div>
   <!-- GAME OVER -->
   <div class="ov" id="goov" style="display: none">
-   <div style="
-          font-size: 1.9rem;
-          font-weight: 900;
-          color: #e74c3c;
-          text-shadow: 0 4px 14px rgba(0, 0, 0, 0.9);
-        ">
-    💀 FIN
+   <div class="go-shell">
+    <div class="go-header">
+     <div class="go-skull">💀</div>
+     <div class="go-title">FIN DE LA RUN</div>
+     <p id="gomsg" class="go-subtitle"></p>
+    </div>
+    <!-- Stats grid -->
+    <div class="go-stats" id="goStats"></div>
+    <!-- Relics strip -->
+    <div class="go-section-label" id="goRelicsLabel" style="display:none">Reliquias obtenidas</div>
+    <div class="go-relics" id="goRelics"></div>
+    <!-- Team summary -->
+    <div class="go-section-label">Tu equipo</div>
+    <div id="goteam" class="go-team"></div>
+    <!-- Best run comparison -->
+    <div class="go-best" id="gobest"></div>
+    <button class="go-replay-btn" onclick="location.reload()">🔄 NUEVA RUN</button>
    </div>
-   <p id="gomsg" style="font-size: 0.92rem; color: #fff; margin: 8px 0">
-   </p>
-   <p id="goscore" style="font-size: 0.8rem; color: #f1c40f; margin-bottom: 4px">
-   </p>
-   <p id="gobest" style="font-size: 0.7rem; color: #aaa; margin-bottom: 10px">
-   </p>
-   <div id="goteam" style="
-          display: flex;
-          gap: 8px;
-          justify-content: center;
-          margin-bottom: 12px;
-          flex-wrap: wrap;
-        ">
-   </div>
-   <button class="gobtn" onclick="location.reload()">
-    🔄 VOLVER A JUGAR
-   </button>
   </div>
   <!-- MODIFIER CHOICE -->
   <div class="ov" id="modov" style="display: none">
@@ -11048,21 +11445,90 @@
             (id) => ($(id).style.display = "none"),
           );
           const isBoss = GS.floor % 5 === 0;
-          $("maptitle").textContent = isBoss ? "⚠ ¡COMBATE DE JEFE!" : `🧭 ELIGE RUTA${GS.runTheme ? ` · ${GS.runThemeName.toUpperCase()}` : ""}`;
           const theme = RUN_THEMES.find((t) => t.id === GS.runTheme);
-          const mutatorSummary = GS.runMutators?.label ? ` ${GS.runMutators.label}.` : "";
+
+          // Floor badge
+          const floorBadge = $("mapFloorBadge");
+          if (floorBadge) floorBadge.textContent = isBoss ? `⚠ JEFE · PISO ${GS.floor}` : `PISO ${GS.floor}`;
+
+          // Title & subtitle
+          $("maptitle").textContent = isBoss ? "⚠ COMBATE DE JEFE" : "🧭 ELIGE TU RUTA";
           $("mapmsg").textContent = isBoss
-            ? `Piso ${GS.floor}: Jefe esperando. No hay escapatoria.${mutatorSummary}`
-            : `Piso ${GS.floor}: Elige cómo avanzar.${theme ? ` Modo ${theme.icon} ${theme.name}.` : ""}${mutatorSummary}`;
-          $("mapopts").innerHTML = nodes
-            .map(
-              (n, i) => `
-      <button class="ropt" onclick="Main.chooseNode(${i})">
-        <div class="ri2">${n.icon}</div>
-        <div><strong>${n.title}</strong><span>${n.desc}</span></div>
-      </button>`,
-            )
-            .join("");
+            ? "El jefe bloquea el paso. No hay escapatoria."
+            : theme ? `Modo ${theme.icon} ${theme.name} · elige cómo avanzar` : "Elige cómo avanzar";
+
+          // Team HP strip
+          const strip = $("mapTeamStrip");
+          if (strip && GS.playerTeam && GS.playerTeam.length) {
+            strip.innerHTML = GS.playerTeam.map(p => {
+              const hpPct = Math.max(0, Math.round((p.hp / p.maxHp) * 100));
+              const hpCol = hpPct > 50 ? "#51c151" : hpPct > 20 ? "#f1c40f" : "#e74c3c";
+              const fainted = p.hp <= 0;
+              return `<div class="map-team-pip">
+                <img class="map-pip-img${fainted ? " fainted" : ""}" src="${p.sdFront || p.sprUrl}" onerror="this.src='${p.sprUrl || ""}'" alt="${p.name}">
+                <div class="map-pip-bar"><div class="map-pip-fill" style="width:${hpPct}%;background:${hpCol}"></div></div>
+              </div>`;
+            }).join("");
+          }
+
+          // SVG connector path (horizontal dots between nodes)
+          const svg = $("mapPathSvg");
+          if (svg && nodes.length > 1) {
+            const count = nodes.length;
+            const step = 300 / count;
+            let dots = "";
+            for (let i = 0; i < count; i++) {
+              const cx = step * i + step / 2;
+              dots += `<circle cx="${cx}" cy="30" r="3" fill="rgba(255,255,255,0.18)"/>`;
+              if (i < count - 1) {
+                const nx = step * (i + 1) + step / 2;
+                dots += `<line x1="${cx}" y1="30" x2="${nx}" y2="30" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+              }
+            }
+            svg.innerHTML = dots;
+          }
+
+          // Node type metadata
+          const NODE_META = {
+            battle:    { tag: "Combate",   tagCls: "type-battle"   },
+            elite:     { tag: "ÉLITE",      tagCls: "type-elite"    },
+            boss:      { tag: "JEFE",       tagCls: "type-boss"     },
+            event:     { tag: "Evento",     tagCls: "type-event"    },
+            rest:      { tag: "Descanso",   tagCls: "type-rest"     },
+            shop:      { tag: "Tienda",     tagCls: "type-shop"     },
+            mystery:   { tag: "Misterio",   tagCls: "type-mystery"  },
+            master:    { tag: "Maestro",    tagCls: "type-master"   },
+            challenge: { tag: "Desafío",    tagCls: "type-challenge"},
+          };
+
+          const optsEl = $("mapopts");
+          optsEl.className = `map-nodes count-${Math.min(nodes.length, 4)}`;
+          optsEl.innerHTML = nodes.map((n, i) => {
+            const meta = NODE_META[n.type] || { tag: n.type, tagCls: "type-battle" };
+            return `<button class="map-node-card ${meta.tagCls}" onclick="Main.chooseNode(${i})">
+              <div class="map-node-icon">${n.icon}</div>
+              <div class="map-node-title">${n.title}</div>
+              <div class="map-node-desc">${n.desc}</div>
+              <div class="map-node-tag">${meta.tag}</div>
+            </button>`;
+          }).join("");
+
+          // Mutator chips (blessings, curses, theme)
+          const mutEl = $("mapMutators");
+          if (mutEl) {
+            const chips = [];
+            if (theme) chips.push(`<span class="map-mut-chip theme">${theme.icon} ${theme.name}</span>`);
+            (GS.modifiers || []).forEach(id => {
+              const b = BLESSINGS.find(x => x.id === id);
+              if (b) chips.push(`<span class="map-mut-chip bless">${b.icon} ${b.name}</span>`);
+            });
+            (GS.curses || []).forEach(id => {
+              const c = CURSES.find(x => x.id === id);
+              if (c) chips.push(`<span class="map-mut-chip curse">${c.icon} ${c.name}</span>`);
+            });
+            mutEl.innerHTML = chips.join("");
+          }
+
           $("mapov").style.display = "flex";
         },
 
@@ -12468,20 +12934,78 @@
           META.bestFloor = Math.max(META.bestFloor, GS.floor);
           META.bestScore = Math.max(META.bestScore, GS.score);
           saveMeta();
-          $("gomsg").textContent = `Llegaste al Piso ${GS.floor}`;
-          $("goscore").textContent =
-            `Puntuación: ⭐ ${GS.score} · Oro: 💰 ${GS.gold} · ⭐ +${starGain}`;
-          $("gobest").textContent =
-            `Récord personal: Piso ${META.bestFloor} · ⭐ ${META.bestScore}`;
-          $("goteam").innerHTML = GS.playerTeam
-            .map(
-              (p) => `<div style="text-align:center;opacity:${p.hp > 0 ? 1 : 0.35}">
-      <img src="${p.sdFront || p.sprUrl}" onerror="this.src='${p.sprUrl || makeInlinePlaceholder("👾")}'" style="width:46px;height:46px;image-rendering:auto;">
-      <div style="font-size:.54rem;color:${p.hp > 0 ? "#51c151" : "#e74c3c"};font-weight:bold;">${p.name}</div>
-      <div style="font-size:.48rem;color:#999;">${Math.max(0, Math.floor(p.hp))}/${p.maxHp} HP</div>
-    </div>`,
-            )
-            .join("");
+
+          // Subtitle
+          $("gomsg").textContent = `Caíste en el Piso ${GS.floor}`;
+
+          // Stats grid
+          const isNewBest = GS.floor >= META.bestFloor;
+          const statsEl = $("goStats");
+          if (statsEl) {
+            const totalBattles = (GS.score && GS.floor) ? GS.floor : GS.floor;
+            const aliveCount = GS.playerTeam.filter(p => p.hp > 0).length;
+            statsEl.innerHTML = `
+              <div class="go-stat-card highlight">
+                <div class="go-stat-label">🗼 Piso alcanzado</div>
+                <div class="go-stat-value">${GS.floor}${isNewBest ? ' 🏆' : ''}</div>
+              </div>
+              <div class="go-stat-card">
+                <div class="go-stat-label">⭐ Puntuación</div>
+                <div class="go-stat-value">${GS.score}</div>
+              </div>
+              <div class="go-stat-card">
+                <div class="go-stat-label">💰 Oro restante</div>
+                <div class="go-stat-value">${GS.gold}</div>
+              </div>
+              <div class="go-stat-card">
+                <div class="go-stat-label">🫀 Pokémon vivos</div>
+                <div class="go-stat-value">${aliveCount}/${GS.playerTeam.length}</div>
+              </div>
+              <div class="go-stat-card">
+                <div class="go-stat-label">⭐ Estrellas ganadas</div>
+                <div class="go-stat-value">+${starGain}</div>
+              </div>
+              <div class="go-stat-card">
+                <div class="go-stat-label">🔥 Racha máx.</div>
+                <div class="go-stat-value">${GS.streak || 0}</div>
+              </div>`;
+          }
+
+          // Relics strip
+          const relicsEl = $("goRelics");
+          const relicsLabel = $("goRelicsLabel");
+          if (relicsEl) {
+            if (GS.relics && GS.relics.length) {
+              if (relicsLabel) relicsLabel.style.display = "block";
+              relicsEl.innerHTML = GS.relics.map(r =>
+                `<div class="go-relic-chip">${r.icon} <span>${r.name}</span></div>`
+              ).join("");
+            } else {
+              if (relicsLabel) relicsLabel.style.display = "none";
+              relicsEl.innerHTML = "";
+            }
+          }
+
+          // Team summary
+          const teamEl = $("goteam");
+          if (teamEl) {
+            teamEl.innerHTML = GS.playerTeam.map(p => {
+              const hpPct = Math.max(0, Math.round((p.hp / p.maxHp) * 100));
+              const hpCol = hpPct > 50 ? "#51c151" : hpPct > 20 ? "#f1c40f" : "#e74c3c";
+              const fainted = p.hp <= 0;
+              const statusStr = p.status ? ` · ${p.status}` : "";
+              return `<div class="go-mon-card ${fainted ? "fainted" : "survived"}">
+                <img class="go-mon-img" src="${p.sdFront || p.sprUrl}" onerror="this.src='${p.sprUrl || makeInlinePlaceholder("👾")}'" alt="${p.name}">
+                <div class="go-mon-name">${p.name}</div>
+                <div class="go-mon-hp"><div class="go-mon-hp-fill" style="width:${hpPct}%;background:${hpCol}"></div></div>
+                <div class="go-mon-status">Nv.${p.level} · ${Math.max(0,Math.floor(p.hp))}/${p.maxHp}${statusStr}</div>
+              </div>`;
+            }).join("");
+          }
+
+          // Best run comparison
+          $("gobest").innerHTML = `Récord personal: <strong>Piso ${META.bestFloor}</strong> · <strong>⭐ ${META.bestScore}</strong> pts${isNewBest ? " · <strong style='color:#f1c40f'>¡Nuevo récord!</strong>" : ""}`;
+
           $("goov").style.display = "flex";
         },
 
