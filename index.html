@@ -1762,30 +1762,158 @@
       #musicbtn:active {
         background: rgba(255, 255, 255, 0.15);
       }
+      /* ── STREAK BADGE (enhanced) ── */
       #streakbdg {
         position: absolute;
-        top: 11px;
+        top: 10px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 115;
         display: none;
-        background: linear-gradient(135deg, #f39c12, #e74c3c);
+        background: linear-gradient(135deg, #ff9900, #e74c3c);
         color: #fff;
-        padding: 3px 12px;
-        border-radius: 16px;
+        padding: 4px 14px 4px 10px;
+        border-radius: 20px;
         font-weight: 900;
-        font-size: 0.68rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        font-size: 0.72rem;
+        box-shadow: 0 0 20px rgba(255,120,0,0.55), 0 3px 12px rgba(0,0,0,0.5);
         letter-spacing: 0.5px;
-        animation: streakPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255,255,255,0.25);
+        white-space: nowrap;
+        animation: streakPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      #streakbdg.streak-mega {
+        background: linear-gradient(135deg, #f1c40f, #e74c3c, #9b59b6);
+        box-shadow: 0 0 30px rgba(255,180,0,0.7), 0 3px 12px rgba(0,0,0,0.5);
+        animation: streakPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), streakMegaPulse 0.8s ease-in-out infinite;
       }
       @keyframes streakPop {
-        from {
-          transform: translateX(-50%) scale(0.65);
-        }
-        to {
-          transform: translateX(-50%) scale(1);
-        }
+        from { transform: translateX(-50%) scale(0.5) translateY(-8px); opacity:0; }
+        to   { transform: translateX(-50%) scale(1)   translateY(0);    opacity:1; }
+      }
+      @keyframes streakMegaPulse {
+        0%,100% { box-shadow: 0 0 24px rgba(255,180,0,0.6), 0 3px 12px rgba(0,0,0,0.5); }
+        50%      { box-shadow: 0 0 48px rgba(255,80,0,0.85), 0 3px 12px rgba(0,0,0,0.5); }
+      }
+      /* flame particles on streak badge */
+      #streakbdg .s-flames {
+        display: inline-block;
+        margin-right: 4px;
+        animation: flameWiggle 0.4s ease-in-out infinite alternate;
+      }
+      @keyframes flameWiggle {
+        from { transform: scale(1) rotate(-5deg); }
+        to   { transform: scale(1.18) rotate(5deg); }
+      }
+
+      /* ── RELIC RARITY SYSTEM ── */
+      /* relic bar icons get rarity glow */
+      .ri.rarity-rare {
+        box-shadow: 0 0 8px rgba(52,152,219,0.7);
+        border: 1px solid rgba(52,152,219,0.55) !important;
+      }
+      .ri.rarity-epic {
+        box-shadow: 0 0 10px rgba(155,89,182,0.75);
+        border: 1px solid rgba(155,89,182,0.6) !important;
+        animation: epicRelicPulse 2s ease-in-out infinite;
+      }
+      .ri.rarity-legendary {
+        box-shadow: 0 0 14px rgba(241,196,15,0.85);
+        border: 1px solid rgba(241,196,15,0.7) !important;
+        animation: legendaryRelicPulse 1.5s ease-in-out infinite;
+      }
+      @keyframes epicRelicPulse {
+        0%,100% { box-shadow: 0 0 8px rgba(155,89,182,0.55); }
+        50%      { box-shadow: 0 0 18px rgba(155,89,182,0.9); }
+      }
+      @keyframes legendaryRelicPulse {
+        0%,100% { box-shadow: 0 0 10px rgba(241,196,15,0.65); }
+        50%      { box-shadow: 0 0 24px rgba(241,196,15,1); }
+      }
+      /* rarity tag in relic list overlay */
+      .relic-rarity-tag {
+        display: inline-block;
+        font-size: 0.44rem;
+        font-weight: 900;
+        padding: 1px 6px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .rarity-tag-common    { background: rgba(160,170,180,0.25); color: #c8d0da; border: 1px solid rgba(160,170,180,0.3); }
+      .rarity-tag-rare      { background: rgba(52,152,219,0.25);  color: #7ec8ff; border: 1px solid rgba(52,152,219,0.4); }
+      .rarity-tag-epic      { background: rgba(155,89,182,0.28);  color: #d4aaff; border: 1px solid rgba(155,89,182,0.45); }
+      .rarity-tag-legendary { background: rgba(241,196,15,0.22);  color: #ffdb73; border: 1px solid rgba(241,196,15,0.45); }
+      /* relic reward cards get a shimmer on epic+ */
+      .reward-card.rarity-epic   { border-color: rgba(155,89,182,0.5) !important; }
+      .reward-card.rarity-legendary { border-color: rgba(241,196,15,0.55) !important; animation: legendaryRelicPulse 1.5s ease-in-out infinite; }
+
+      /* ── ACHIEVEMENT POP-UP ── */
+      #achpop {
+        position: absolute;
+        bottom: 22%;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        z-index: 320;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+        min-width: 200px;
+        max-width: min(80vw, 290px);
+      }
+      #achpop.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .ach-pop-inner {
+        background: linear-gradient(135deg, rgba(10,18,28,0.97), rgba(6,12,20,0.99));
+        border: 1px solid rgba(241,196,15,0.5);
+        border-radius: 16px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 0 24px rgba(241,196,15,0.22), 0 10px 30px rgba(0,0,0,0.6);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        animation: achSlideIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      }
+      @keyframes achSlideIn {
+        from { transform: scale(0.8); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+      }
+      .ach-pop-icon {
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 8px rgba(241,196,15,0.6));
+      }
+      .ach-pop-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+      }
+      .ach-pop-kicker {
+        font-size: 0.48rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #f1c40f;
+      }
+      .ach-pop-name {
+        font-size: 0.78rem;
+        font-weight: 900;
+        color: #f2f7ff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ach-pop-desc {
+        font-size: 0.56rem;
+        color: rgba(200,215,235,0.72);
+        line-height: 1.2;
       }
       #modbdg {
         position: absolute;
@@ -3478,6 +3606,93 @@
         box-shadow: 0 5px 14px rgba(231,76,60,0.25);
       }
 
+      /* ================================================================
+         BUILD IDENTITY PANEL
+      ================================================================ */
+      #buildpanel {
+        position: absolute;
+        top: 50px;
+        right: 6px;
+        z-index: 116;
+        display: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        pointer-events: none;
+        max-width: 130px;
+      }
+      #buildpanel.visible { display: flex; }
+      .build-identity-tag {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: linear-gradient(135deg, rgba(8,14,24,0.92), rgba(4,8,16,0.96));
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 10px;
+        padding: 4px 9px 4px 7px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        animation: buildTagIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      }
+      @keyframes buildTagIn {
+        from { transform: translateX(16px) scale(0.88); opacity: 0; }
+        to   { transform: translateX(0)    scale(1);    opacity: 1; }
+      }
+      .build-tag-icon { font-size: 0.9rem; line-height: 1; }
+      .build-tag-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0px;
+      }
+      .build-tag-label {
+        font-size: 0.42rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: rgba(180,200,225,0.6);
+        line-height: 1;
+      }
+      .build-tag-name {
+        font-size: 0.64rem;
+        font-weight: 900;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+      /* Per-archetype accent colors */
+      .build-identity-tag.arch-critico  { border-color: rgba(241,196,15,0.35); }
+      .build-identity-tag.arch-critico  .build-tag-name { color: #ffdb73; }
+      .build-identity-tag.arch-drenaje  { border-color: rgba(46,204,113,0.35); }
+      .build-identity-tag.arch-drenaje  .build-tag-name { color: #7fffb0; }
+      .build-identity-tag.arch-tanque   { border-color: rgba(52,152,219,0.35); }
+      .build-identity-tag.arch-tanque   .build-tag-name { color: #7ec8ff; }
+      .build-identity-tag.arch-velocidad { border-color: rgba(26,188,156,0.35); }
+      .build-identity-tag.arch-velocidad .build-tag-name { color: #7fffd4; }
+      .build-identity-tag.arch-fisico   { border-color: rgba(231,76,60,0.35); }
+      .build-identity-tag.arch-fisico   .build-tag-name { color: #ff9988; }
+      .build-identity-tag.arch-especial { border-color: rgba(155,89,182,0.35); }
+      .build-identity-tag.arch-especial .build-tag-name { color: #d4aaff; }
+      .build-identity-tag.arch-control  { border-color: rgba(52,73,94,0.5); }
+      .build-identity-tag.arch-control  .build-tag-name { color: #adc0d8; }
+      .build-identity-tag.arch-stall    { border-color: rgba(127,140,141,0.35); }
+      .build-identity-tag.arch-stall    .build-tag-name { color: #ccd6e0; }
+      /* Synergy pip row */
+      .build-synergy-row {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .build-syn-pip {
+        font-size: 0.56rem;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 6px;
+        padding: 1px 5px;
+        color: rgba(200,215,235,0.7);
+        white-space: nowrap;
+      }
+
       /* === PRELOAD SCREEN === */
       #preloadov {
         background: radial-gradient(
@@ -4573,10 +4788,18 @@
    <canvas id="fxcvs">
    </canvas>
    <div id="streakbdg">
-    🔥 RACHA ×
-    <span id="streakval">
-     0
-    </span>
+    <span class="s-flames">🔥</span>RACHA ×<span id="streakval">0</span>
+   </div>
+   <!-- ACHIEVEMENT POP-UP -->
+   <div id="achpop">
+    <div class="ach-pop-inner">
+     <div class="ach-pop-icon" id="achPopIcon">🏆</div>
+     <div class="ach-pop-text">
+      <div class="ach-pop-kicker">🏅 LOGRO DESBLOQUEADO</div>
+      <div class="ach-pop-name" id="achPopName">Logro</div>
+      <div class="ach-pop-desc" id="achPopDesc"></div>
+     </div>
+    </div>
    </div>
    <button id="musicbtn" title="Música">
     🔊
@@ -4641,6 +4864,8 @@
   <!-- BATTLE LOG PANEL -->
   <div id="blogpanel">
   </div>
+  <!-- BUILD IDENTITY PANEL -->
+  <div id="buildpanel"></div>
   <!-- MAP -->
   <div class="ov" id="mapov" style="display: none">
    <div class="map-shell">
@@ -5110,7 +5335,7 @@
    </button>
   </div>
   <!-- LOADING -->
-  <div class="ov" id="lovd">
+  <div class="ov" id="lovd" style="display:none">
    <div class="pkbs">
    </div>
    <p id="lovdmsg" style="margin-top: 16px; color: #aaa; font-size: 0.82rem">
@@ -5653,6 +5878,37 @@
           guardSpec: true,
         },
       ];
+
+      // ── RELIC RARITY DEFINITIONS ──
+      const RELIC_RARITY = {
+        "life-orb":     "legendary",
+        "choice-band":  "legendary",
+        "choice-specs": "legendary",
+        "razor-claw":   "legendary",
+        "toxic-orb":    "legendary",
+        "focus-sash":   "epic",
+        "scope-lens":   "epic",
+        "shell-bell":   "epic",
+        "assault-vest": "epic",
+        "quick-claw":   "epic",
+        "metronome":    "epic",
+        "adrenaline":   "epic",
+        "flame-plate":  "epic",
+        "rocky-helmet": "rare",
+        "expert-belt":  "rare",
+        "lucky-egg":    "rare",
+        "kings-rock":   "rare",
+        "big-root":     "rare",
+        "lum-berry":    "rare",
+        "sitrus-berry": "rare",
+        "air-balloon":  "rare",
+      };
+      function relicRarity(id) { return RELIC_RARITY[id] || "common"; }
+      function relicRarityLabel(id) {
+        const map = { legendary: "Legendaria", epic: "Épica", rare: "Rara", common: "Común" };
+        return map[relicRarity(id)] || "Común";
+      }
+      function relicRarityTagClass(id) { return `rarity-tag-${relicRarity(id)}`; }
 
       const BLESSINGS = [
         {
@@ -9596,8 +9852,13 @@
         },
         updateRelicBar() {
           $("relbar").innerHTML = GS.relics
-            .map((r) => `<div class="ri" title="${r.name}: ${r.desc}">${r.icon}</div>`)
+            .map((r) => {
+              const rar = relicRarity(r.id);
+              return `<div class="ri rarity-${rar}" title="${r.name} [${relicRarityLabel(r.id)}]: ${r.desc}">${r.icon}</div>`;
+            })
             .join("");
+          // Refresh build identity panel
+          if (window.BuildSystem) BuildSystem.update();
         },
         updateModifierHUD() {
           const el = $("modbdg");
@@ -10131,10 +10392,18 @@
           SFX.open();
           $("rellist").innerHTML = GS.relics.length
             ? GS.relics
-                .map(
-                  (r) =>
-                    `<div class="relcard"><div style="font-size:22px;">${r.icon}</div><div><div class="rn">${r.name}</div><div class="rd">${r.desc}</div></div></div>`,
-                )
+                .map((r) => {
+                  const rar = relicRarity(r.id);
+                  const tagCls = relicRarityTagClass(r.id);
+                  const tagLbl = relicRarityLabel(r.id);
+                  return `<div class="relcard">
+                    <div style="font-size:22px;">${r.icon}</div>
+                    <div>
+                      <div class="rn">${r.name}<span class="relic-rarity-tag ${tagCls}">${tagLbl}</span></div>
+                      <div class="rd">${r.desc}</div>
+                    </div>
+                  </div>`;
+                })
                 .join("")
             : '<p style="color:#aaa;text-align:center;padding:20px;">Aún no tienes reliquias.<br>Gana batallas para obtenerlas.</p>';
           $("relicov").style.display = "flex";
@@ -11019,8 +11288,21 @@
             const sv = $("streakval");
             if (sb && sv) {
               sv.textContent = GS.streak;
+              // Mega streak visual at 7+
+              if (GS.streak >= 7) {
+                sb.classList.add("streak-mega");
+              } else {
+                sb.classList.remove("streak-mega");
+              }
+              // Re-trigger pop animation
+              sb.style.display = "none";
+              void sb.offsetWidth;
               sb.style.display = "block";
-              setTimeout(() => (sb.style.display = "none"), 2200);
+              clearTimeout(sb._hideTimer);
+              sb._hideTimer = setTimeout(() => {
+                sb.style.display = "none";
+                sb.classList.remove("streak-mega");
+              }, GS.streak >= 7 ? 3500 : 2400);
             }
           }
           // Momentum blessing
@@ -12477,6 +12759,8 @@
           META.bestScore = Math.max(META.bestScore, GS.score);
           META.bestFloor = Math.max(META.bestFloor, GS.floor);
           saveMeta();
+          // ── Achievement check ──
+          if (window.AchievementSystem) AchievementSystem.check();
           if (
             GS.currentNode &&
             GS.currentNode.type === "master" &&
@@ -12934,6 +13218,8 @@
           META.bestFloor = Math.max(META.bestFloor, GS.floor);
           META.bestScore = Math.max(META.bestScore, GS.score);
           saveMeta();
+          // ── Achievement check ──
+          if (window.AchievementSystem) AchievementSystem.check();
 
           // Subtitle
           $("gomsg").textContent = `Caíste en el Piso ${GS.floor}`;
@@ -13104,8 +13390,228 @@
 
 
       // ============================================================
-      // CLAUDE AI ENHANCEMENT MODULE
+      // BUILD IDENTITY SYSTEM
       // ============================================================
+      const BUILD_ARCHETYPES = [
+        {
+          id: "critico",
+          name: "Crítico",
+          icon: "🎯",
+          relics: ["scope-lens", "razor-claw", "kings-rock"],
+          weight: (ids) => ids.filter(id => ["scope-lens","razor-claw","kings-rock"].includes(id)).length * 3,
+        },
+        {
+          id: "drenaje",
+          name: "Drenaje",
+          icon: "🩸",
+          relics: ["big-root", "shell-bell", "leftovers", "sitrus-berry"],
+          weight: (ids) => ids.filter(id => ["big-root","shell-bell","leftovers","sitrus-berry"].includes(id)).length * 3,
+        },
+        {
+          id: "fisico",
+          name: "Físico",
+          icon: "💪",
+          relics: ["choice-band", "life-orb", "expert-belt", "toxic-orb"],
+          weight: (ids) => {
+            let w = 0;
+            if (ids.includes("choice-band")) w += 4;
+            if (ids.includes("life-orb"))    w += 3;
+            if (ids.includes("expert-belt")) w += 2;
+            if (ids.includes("toxic-orb"))   w += 2;
+            return w;
+          },
+        },
+        {
+          id: "especial",
+          name: "Especial",
+          icon: "✨",
+          relics: ["choice-specs", "life-orb", "expert-belt"],
+          weight: (ids) => {
+            let w = 0;
+            if (ids.includes("choice-specs")) w += 4;
+            if (ids.includes("life-orb"))     w += 2;
+            if (ids.includes("expert-belt"))  w += 2;
+            return w;
+          },
+        },
+        {
+          id: "tanque",
+          name: "Tanque",
+          icon: "🛡️",
+          relics: ["assault-vest", "rocky-helmet", "leftovers", "focus-sash", "air-balloon"],
+          weight: (ids) => ids.filter(id => ["assault-vest","rocky-helmet","leftovers","focus-sash","air-balloon"].includes(id)).length * 2,
+        },
+        {
+          id: "velocidad",
+          name: "Velocidad",
+          icon: "⚡",
+          relics: ["quick-claw", "wide-lens", "adrenaline"],
+          weight: (ids) => ids.filter(id => ["quick-claw","wide-lens","adrenaline"].includes(id)).length * 3,
+        },
+        {
+          id: "stall",
+          name: "Desgaste",
+          icon: "⏳",
+          relics: ["leftovers", "toxic-orb", "rocky-helmet", "lum-berry"],
+          weight: (ids) => {
+            let w = 0;
+            if (ids.includes("leftovers"))    w += 2;
+            if (ids.includes("toxic-orb"))    w += 3;
+            if (ids.includes("rocky-helmet")) w += 2;
+            return w;
+          },
+        },
+      ];
+
+      // Synergy bonuses — extra label when 2+ relics of same theme are present
+      const BUILD_SYNERGIES = [
+        { id: "tricritic", label: "Tri-Crítico", relics: ["scope-lens","razor-claw","kings-rock"], min: 3 },
+        { id: "bloodsucker", label: "Vampirismo", relics: ["big-root","shell-bell","leftovers"], min: 3 },
+        { id: "bulky-off", label: "Bulky Off",   relics: ["life-orb","focus-sash"], min: 2 },
+        { id: "wallbreaker", label: "Wallbreaker", relics: ["choice-band","expert-belt"], min: 2 },
+        { id: "stallbreaker", label: "Stallbreaker", relics: ["toxic-orb","adrenaline"], min: 2 },
+        { id: "glasscanon", label: "Cañón Cristal", relics: ["life-orb","choice-specs"], min: 2 },
+        { id: "speedemon", label: "Demonio Veloz", relics: ["quick-claw","adrenaline","wide-lens"], min: 2 },
+      ];
+
+      const BuildSystem = {
+        _last: null,
+
+        compute(relics) {
+          if (!relics || relics.length === 0) return null;
+          const ids = relics.map(r => r.id);
+
+          // Score all archetypes
+          const scored = BUILD_ARCHETYPES.map(a => ({ ...a, score: a.weight(ids) }))
+            .filter(a => a.score > 0)
+            .sort((a, b) => b.score - a.score);
+
+          if (!scored.length) return null;
+
+          const primary = scored[0];
+          const secondary = scored[1] && scored[1].score >= scored[0].score * 0.6 ? scored[1] : null;
+
+          // Active synergies
+          const synergies = BUILD_SYNERGIES.filter(s => {
+            const hits = s.relics.filter(id => ids.includes(id)).length;
+            return hits >= s.min;
+          });
+
+          return { primary, secondary, synergies, relicCount: relics.length };
+        },
+
+        update() {
+          const panel = $("buildpanel");
+          if (!panel) return;
+          if (!GS.relics || GS.relics.length < 1) {
+            panel.classList.remove("visible");
+            return;
+          }
+
+          const build = this.compute(GS.relics);
+          if (!build) { panel.classList.remove("visible"); return; }
+
+          // Only re-render if build changed
+          const key = build.primary.id + (build.secondary?.id || "") + build.synergies.map(s=>s.id).join("");
+          if (key === this._last && panel.classList.contains("visible")) return;
+          this._last = key;
+
+          let html = "";
+
+          // Primary archetype tag
+          const sec = build.secondary ? ` / ${build.secondary.icon} ${build.secondary.name}` : "";
+          html += `<div class="build-identity-tag arch-${build.primary.id}">
+            <div class="build-tag-icon">${build.primary.icon}</div>
+            <div class="build-tag-text">
+              <div class="build-tag-label">Build activa</div>
+              <div class="build-tag-name">${build.primary.name}${sec}</div>
+            </div>
+          </div>`;
+
+          // Synergy chips
+          if (build.synergies.length) {
+            html += `<div class="build-synergy-row">
+              ${build.synergies.map(s => `<div class="build-syn-pip">⚡ ${s.label}</div>`).join("")}
+            </div>`;
+          }
+
+          panel.innerHTML = html;
+          panel.classList.add("visible");
+        },
+      };
+      const AchievementSystem = {
+        _unlocked: new Set(),      // IDs shown this session
+        _queue: [],
+        _showing: false,
+
+        _loadSeen() {
+          try {
+            const s = localStorage.getItem("ach_seen");
+            if (s) JSON.parse(s).forEach(id => this._unlocked.add(id));
+          } catch(e) {}
+        },
+        _saveSeen() {
+          try {
+            localStorage.setItem("ach_seen", JSON.stringify([...this._unlocked]));
+          } catch(e) {}
+        },
+
+        // Call after any event that could unlock achievements
+        check() {
+          const defs = UI._achievementDefs;
+          if (!defs) return;
+          for (const a of defs) {
+            const id = a.name; // use name as stable ID
+            if (this._unlocked.has(id)) continue;
+            const val = Number(a.get() || 0);
+            if (val >= a.goal) {
+              this._unlocked.add(id);
+              this._saveSeen();
+              this._queue.push(a);
+            }
+          }
+          if (!this._showing) this._flush();
+        },
+
+        async _flush() {
+          if (!this._queue.length) { this._showing = false; return; }
+          this._showing = true;
+          const a = this._queue.shift();
+          const pop = $("achpop");
+          if (!pop) { this._showing = false; return; }
+          $("achPopIcon").textContent = a.icon;
+          $("achPopName").textContent = a.name;
+          $("achPopDesc").textContent = a.desc;
+          pop.classList.add("show");
+          SFX.relic && SFX.relic();
+          await sleep(3200);
+          pop.classList.remove("show");
+          await sleep(350);
+          this._showing = false;
+          this._flush();
+        },
+      };
+      // Init: load already-seen achievements so we don't re-show on reload
+      AchievementSystem._loadSeen();
+      // Pre-mark already completed ones as seen (don't show on first load)
+      try {
+        (function _seedAchievements() {
+          const check = () => {
+            try {
+              const defs = UI._achievementDefs;
+              if (!defs) { setTimeout(check, 400); return; }
+              for (const a of defs) {
+                try {
+                  const val = Number(a.get() || 0);
+                  if (val >= a.goal) AchievementSystem._unlocked.add(a.name);
+                } catch(e) {}
+              }
+              AchievementSystem._saveSeen();
+            } catch(e) {}
+          };
+          setTimeout(check, 800);
+        })();
+      } catch(e) {}
       const ClaudeAI = {
         _enabled: true,
         _cache: new Map(),
@@ -13242,7 +13748,6 @@ RESPONDE SOLO con la frase. Sin comillas. Sin explicación.`;
       };
 
       async function bootstrapV5() {
-        UI.hideLoad();
         try {
           await Main.loadStarterGrid();
           if (!$("sgrid").children.length) {
@@ -13253,6 +13758,8 @@ RESPONDE SOLO con la frase. Sin comillas. Sin explicación.`;
           console.error(err);
           $("sgrid").innerHTML =
             '<div style="color:#aaa;grid-column:1/-1;padding:20px;">Error cargando starters. Revisa tu conexión.</div>';
+        } finally {
+          UI.hideLoad();
         }
       }
 
